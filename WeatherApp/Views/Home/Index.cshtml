@@ -1,0 +1,109 @@
+﻿@model IEnumerable<WeatherRecord>
+
+@{
+    ViewData["Title"] = "Weather Data";
+}
+
+
+<div id="weatherChartContainer"></div>
+
+<script type="text/babel">
+    class WeatherChart extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                weatherData: [],
+                minTempData: [],
+                maxTempData: [],
+                labels: []
+            };
+            this.updateWeatherData = this.updateWeatherData.bind(this);
+        }
+
+        componentDidMount() {
+            setTimeout(() => { this.updateWeatherData();
+            this.interval = setInterval(this.updateWeatherData, 30000);
+            }, 2000);
+        }
+
+        componentWillUnmount() {
+            clearInterval(this.interval);
+        }
+
+        updateWeatherData() {
+            axios.get('/api/weather')
+                .then(response => {
+                    const weatherData = response.data;
+                    const minTempData = weatherData.map(record => record.minTemperature);
+                    const maxTempData = weatherData.map(record => record.maxTemperature);
+                    const labels = weatherData.map(record => `${record.city} (${record.country})`);
+
+                    this.setState({ weatherData, minTempData, maxTempData, labels }, () => {
+                        this.renderChart();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching weather data:', error);
+                });
+        }
+
+        renderChart() {
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+            if (this.chart) {
+                this.chart.destroy();
+            }
+            this.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: this.state.labels,
+                    datasets: [
+                        {
+                            label: 'Min Temperature(K)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            data: this.state.minTempData,
+                            fill: false,
+                        },
+                        {
+                            label: 'Max Temperature(K)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            data: this.state.maxTempData,
+                            fill: false,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Cities'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Temperature (K)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        render() {
+            return (
+                <div> 
+                    <canvas id="weatherChart" width="400" height="200"></canvas>
+                </div>
+            );
+        }
+    }
+
+    ReactDOM.render(<WeatherChart />, document.getElementById('weatherChartContainer'));
+</script>
