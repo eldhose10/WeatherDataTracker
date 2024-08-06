@@ -3,18 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using WeatherApp.Data;
+using System.Threading.Tasks; 
 using WeatherApp.Models;
+using WeatherApp.Service;
 
 namespace WeatherApp.Controllers
 { 
     public class HomeController : Controller
     {
-        private readonly WeatherDbContext _context;
-        public HomeController(WeatherDbContext context)
+        private readonly IWeatherServiceBusiness _weatherBusiness;
+        public HomeController(IWeatherServiceBusiness weatherBusiness)
         {
-            _context = context;
+            _weatherBusiness = weatherBusiness;
         }
         public IActionResult Index()
         {
@@ -22,9 +22,14 @@ namespace WeatherApp.Controllers
         }
         [Route("api/weather")]
         [HttpGet]
-        public IEnumerable<WeatherRecord> GetWeatherRecords()
+        public async Task<ActionResult<IEnumerable<WeatherRecord>>> GetWeatherRecords()
         {
-            return _context.WeatherRecord.ToList();
+            var records = await _weatherBusiness.GetWeatherDataAsync();
+            if (records == null)
+            {
+                return NotFound(); 
+            }
+            return Ok(records);
         }
     }
 }

@@ -35,6 +35,11 @@ namespace WeatherApp.Service
                     var _context = scope.ServiceProvider.GetService<WeatherDbContext>();
 
                     var apiKey = _configuration["ApiConfiguration:WeatherApiKey"];
+                    if (string.IsNullOrEmpty(apiKey))
+                    {
+                        _logger.LogError("Weather API key is not configured.");
+                        return;
+                    }
 
                     var cities = new[] { "London", "Manchester", "New York", "Los Angeles", "Tokyo", "Osaka" };
 
@@ -76,5 +81,29 @@ namespace WeatherApp.Service
                 _logger.LogError(ex, "An error occurred while updating weather data.");
             }
         }
+        public async Task<IEnumerable<WeatherRecord>> GetWeatherDataAsync()
+        {
+            try
+            {
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var _context = scope.ServiceProvider.GetService<WeatherDbContext>();
+
+                    if (_context == null)
+                    {
+                        _logger.LogError("WeatherDbContext could not be resolved.");
+                        return Enumerable.Empty<WeatherRecord>(); // Return an empty list.
+                    }
+
+                    return await _context.WeatherRecord.ToListAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching weather data.");
+                return Enumerable.Empty<WeatherRecord>(); // Return an empty list in case of an exception
+            }
+        }
+
     }
 }

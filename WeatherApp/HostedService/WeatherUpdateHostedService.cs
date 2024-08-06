@@ -13,13 +13,12 @@ using WeatherApp.Service;
 namespace WeatherApp.Services
 {
     public class WeatherUpdateHostedService : IHostedService, IDisposable
-    {
-        // private readonly WeatherDbContext _context;
+    { 
         private Timer _timer = null;
         private IWeatherServiceBusiness _weatherBusiness;
         private readonly ILogger<WeatherUpdateHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        public WeatherUpdateHostedService(ILogger<WeatherUpdateHostedService> logger, IWeatherServiceBusiness weatherBusiness, IServiceProvider serviceProvider)//, WeatherDbContext context
+        public WeatherUpdateHostedService(ILogger<WeatherUpdateHostedService> logger, IWeatherServiceBusiness weatherBusiness, IServiceProvider serviceProvider) 
         {
             _logger = logger;
             _weatherBusiness = weatherBusiness;
